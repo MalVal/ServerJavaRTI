@@ -1,5 +1,6 @@
 package Protocol;
 
+import Logger.Logger;
 import Request.*;
 import Response.*;
 import Exception.ConnectionEndException;
@@ -13,7 +14,7 @@ public class EVPP implements Protocol {
     }
 
     @Override
-    public Response processRequest(Request request, Socket socket) throws ConnectionEndException {
+    public synchronized Response processRequest(Request request, Socket socket) throws ConnectionEndException {
 
         if(request instanceof ClientRequest) {
             ClientRequest clientRequest = (ClientRequest) request;
@@ -38,6 +39,9 @@ public class EVPP implements Protocol {
         if(request instanceof SelectBookRequest) {
             SelectBookRequest selectBookRequest = (SelectBookRequest) request;
             return new SelectBookResponse();
+        }
+        if(request instanceof LogoutRequest) {
+            throw new ConnectionEndException(null);
         }
 
         return null;
