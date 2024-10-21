@@ -1,8 +1,7 @@
 package Protocol;
 
-import Request.Request;
-import Response.Response;
 import Request.*;
+import Response.*;
 import Exception.ConnectionEndException;
 
 import java.net.Socket;
@@ -18,21 +17,27 @@ public class EVPP implements Protocol {
 
         if(request instanceof ClientRequest) {
             ClientRequest clientRequest = (ClientRequest) request;
+            return new ClientResponse();
         }
         if(request instanceof AddCaddyItemRequest) {
             AddCaddyItemRequest addCaddyItemRequest = (AddCaddyItemRequest) request;
+            return new AddCaddyItemResponse();
         }
         if(request instanceof CancelCaddyRequest) {
             CancelCaddyRequest cancelCaddyRequest = (CancelCaddyRequest) request;
+            return new CancelCaddyResponse();
         }
         if(request instanceof DeleteCaddyItemRequest) {
             DeleteCaddyItemRequest deleteCaddyItemRequest = (DeleteCaddyItemRequest) request;
+            return new DeleteCaddyItemResponse();
         }
         if(request instanceof PayCaddyRequest) {
             PayCaddyRequest payCaddyRequest = (PayCaddyRequest) request;
+            return new PayCaddyResponse();
         }
         if(request instanceof SelectBookRequest) {
             SelectBookRequest selectBookRequest = (SelectBookRequest) request;
+            return new SelectBookResponse();
         }
 
         return null;
