@@ -32,16 +32,6 @@ public class DataBaseConnection {
         connection = DriverManager.getConnection(url, user, password);
     }
 
-    public synchronized ResultSet executeQuery(String sql) throws SQLException {
-        Statement statement = connection.createStatement();
-        return statement.executeQuery(sql);
-    }
-
-    public synchronized int executeUpdate(String sql) throws SQLException {
-        Statement statement = connection.createStatement();
-        return statement.executeUpdate(sql);
-    }
-
     public Connection getConnection() {
         return connection;
     }
