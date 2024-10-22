@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class EVPP implements Protocol {
 
-    private DataBaseConnection dataBaseConnection;
+    private final DataBaseConnection dataBaseConnection;
 
     public EVPP(DataBaseConnection dataBaseConnection) {
         this.dataBaseConnection = dataBaseConnection;

@@ -1,6 +1,6 @@
 package Response;
 
-import Model.Book;
+import Model.Entities.Book;
 
 import java.util.ArrayList;
 
