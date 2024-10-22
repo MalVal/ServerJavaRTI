@@ -31,6 +31,7 @@ public class TestBookDAO {
             System.out.println("Connection à la base de données réussie !");
 
             BookSearchVM bookSearchVM = new BookSearchVM();
+            bookSearchVM.setAuthorLastName("Malchair");
             BookDAO dao = new BookDAO();
             ArrayList<Book> books = dao.loadBook(bookSearchVM, dbc);
 
@@ -38,6 +39,8 @@ public class TestBookDAO {
                 System.out.println("----------------------------BOOK---------------------------");
                 System.out.println(book);
             }
+
+            dbc.close();
         }
         catch (SQLException sqlEx) {
             System.out.println("SQL exception :" + sqlEx.getMessage());
