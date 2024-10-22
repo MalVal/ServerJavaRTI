@@ -1,7 +1,8 @@
-package ServerTCP;
+package Network.ServerTCP;
 
 import Logger.Logger;
-import Protocol.Protocol;
+import Network.Protocol.Protocol;
+import Network.ServerTCP.ThreadClient;
 
 import java.io.IOException;
 import java.net.Socket;

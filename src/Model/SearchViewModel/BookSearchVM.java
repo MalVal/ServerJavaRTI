@@ -9,6 +9,15 @@ public class BookSearchVM {
     private String isbn;
     private Integer publishYear;
 
+    public BookSearchVM() {
+        this.idBook = null;
+        this.authorLastName = null;
+        this.subjectName = null;
+        this.title = null;
+        this.isbn = null;
+        this.publishYear = null;
+    }
+
     public BookSearchVM(Integer idBook, String authorLastName, String subjectName, String title, String isbn, Integer publishYear) {
         this.idBook = idBook;
         this.authorLastName = authorLastName;

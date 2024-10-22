@@ -1,10 +1,10 @@
-package Response;
+package Network.Request;
 
-public class ClientResponse implements Response {
+public class CancelCaddyRequest implements Request {
 
     private Integer idClient;
 
-    public ClientResponse(Integer idClient) {
+    public CancelCaddyRequest(Integer idClient) {
         this.idClient = idClient;
     }
 

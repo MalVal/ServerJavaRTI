@@ -1,4 +1,4 @@
-package Request;
+package Network.Request;
 
 import java.io.*;
 

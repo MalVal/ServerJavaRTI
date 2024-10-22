@@ -1,12 +1,13 @@
-package Protocol;
+package Network.Protocol;
 
-import DataBase.DataBaseConnection;
-import Request.*;
-import Response.*;
+import Model.DataAcessObject.BookDAO;
+import Model.DataBase.DataBaseConnection;
 import Exception.ConnectionEndException;
+import Network.Request.*;
+import Network.Response.*;
 
 import java.net.Socket;
-import java.util.ArrayList;
+import java.sql.SQLException;
 
 public class EVPP implements Protocol {
 
@@ -44,9 +45,14 @@ public class EVPP implements Protocol {
             PayCaddyRequest payCaddyRequest = (PayCaddyRequest) request;
             return new PayCaddyResponse(true);
         }
-        if(request instanceof SelectBookRequest) {
-            SelectBookRequest selectBookRequest = (SelectBookRequest) request;
-            return new SelectBookResponse(new ArrayList<>());
+        if(request instanceof SelectBookRequest selectBookRequest) {
+            BookDAO bookDAO = new BookDAO();
+            try {
+                return new SelectBookResponse(bookDAO.loadBook(selectBookRequest.getBookSearchVM(), dataBaseConnection));
+            }
+            catch (SQLException sqlException) {
+                return new ErrorResponse(sqlException.getMessage());
+            }
         }
         if(request instanceof LogoutRequest) {
             throw new ConnectionEndException(null);

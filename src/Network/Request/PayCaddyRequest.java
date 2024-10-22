@@ -1,10 +1,10 @@
-package Request;
+package Network.Request;
 
-public class CancelCaddyRequest implements Request {
+public class PayCaddyRequest implements Request {
 
     private Integer idClient;
 
-    public CancelCaddyRequest(Integer idClient) {
+    public PayCaddyRequest(Integer idClient) {
         this.idClient = idClient;
     }
 

@@ -1,9 +1,9 @@
-package ServerTCP;
+package Network.ServerTCP;
 
 import Logger.Logger;
-import Protocol.Protocol;
-import Request.Request;
-import Response.Response;
+import Network.Protocol.Protocol;
+import Network.Request.Request;
+import Network.Response.Response;
 import Exception.ConnectionEndException;
 
 import java.io.*;

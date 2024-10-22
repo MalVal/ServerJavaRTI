@@ -1,11 +1,11 @@
-package Request;
+package Network.Request;
 
-public class AddCaddyItemRequest implements Request {
+public class DeleteCaddyItemRequest implements Request {
 
     private Integer idBook;
     private Integer quantity;
 
-    public AddCaddyItemRequest(Integer idBook, Integer quantity) {
+    public DeleteCaddyItemRequest(Integer idBook, Integer quantity) {
         this.idBook = idBook;
         this.quantity = quantity;
     }

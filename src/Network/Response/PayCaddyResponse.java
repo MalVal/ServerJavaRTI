@@ -1,4 +1,4 @@
-package Response;
+package Network.Response;
 
 public class PayCaddyResponse implements Response {
 

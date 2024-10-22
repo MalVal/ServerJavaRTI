@@ -1,10 +1,10 @@
-package Request;
+package Network.Response;
 
-public class PayCaddyRequest implements Request {
+public class ClientResponse implements Response {
 
     private Integer idClient;
 
-    public PayCaddyRequest(Integer idClient) {
+    public ClientResponse(Integer idClient) {
         this.idClient = idClient;
     }
 

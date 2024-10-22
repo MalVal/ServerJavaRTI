@@ -2,15 +2,27 @@ package Model.Entities;
 
 public class Book {
 
-    private int id;
+    private Integer id;
     private String authorLastName;
     private String subjectName;
     private String title;
     private String isbn;
-    private int pageCount;
-    private int stockQuantity;
-    private float price;
-    private int publishYear;
+    private Integer pageCount;
+    private Integer stockQuantity;
+    private Float price;
+    private Integer publishYear;
+
+    public Book() {
+        this.id = null;
+        this.authorLastName = null;
+        this.subjectName = null;
+        this.title = null;
+        this.isbn = null;
+        this.pageCount = null;
+        this.stockQuantity = null;
+        this.price = null;
+        this.publishYear = null;
+    }
 
     public Book(int id, String authorLastName, String subjectName, String title, String isbn, int pageCount, int stockQuantity, float price, int publishYear) {
         this.id = id;

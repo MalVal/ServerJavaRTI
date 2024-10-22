@@ -1,4 +1,4 @@
-package DataBase;
+package Model.DataBase;
 
 import java.sql.*;
 import java.util.Hashtable;
@@ -40,6 +40,10 @@ public class DataBaseConnection {
     public synchronized int executeUpdate(String sql) throws SQLException {
         Statement statement = connection.createStatement();
         return statement.executeUpdate(sql);
+    }
+
+    public Connection getConnection() {
+        return connection;
     }
 
     public synchronized void close() throws SQLException {

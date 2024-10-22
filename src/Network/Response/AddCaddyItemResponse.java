@@ -1,4 +1,4 @@
-package Response;
+package Network.Response;
 
 public class AddCaddyItemResponse implements Response {
 

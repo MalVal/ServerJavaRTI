@@ -1,10 +1,10 @@
-package Response;
+package Network.Response;
 
-public class DeleteCaddyItemResponse implements Response {
+public class CancelCaddyResponse implements Response {
 
     private Boolean response;
 
-    public DeleteCaddyItemResponse(Boolean response) {
+    public CancelCaddyResponse(Boolean response) {
         this.response = response;
     }
 
