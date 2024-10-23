@@ -1,6 +1,6 @@
 package Network.Request;
 
-import Model.SearchViewModel.BookSearchVM;
+import Server.Model.SearchViewModel.BookSearchVM;
 
 public class SelectBookRequest implements Request {
 

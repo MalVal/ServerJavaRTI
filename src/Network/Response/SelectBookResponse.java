@@ -1,6 +1,6 @@
 package Network.Response;
 
-import Model.Entities.Book;
+import Server.Model.Entities.Book;
 
 import java.util.ArrayList;
 
