@@ -11,7 +11,13 @@ import java.util.ArrayList;
 
 public class BookDAO {
 
-    public ArrayList<Book> loadBook(BookSearchVM b, DataBaseConnection bd) throws SQLException {
+    private DataBaseConnection bd;
+
+    public BookDAO(DataBaseConnection bd) {
+        this.bd = bd;
+    }
+
+    public ArrayList<Book> loadBook(BookSearchVM b) throws SQLException {
 
         ArrayList<Book> books = new ArrayList<>();
 
@@ -50,7 +56,7 @@ public class BookDAO {
             sql += where;
         }
 
-        PreparedStatement stmt = bd.getConnection().prepareStatement(sql);
+        PreparedStatement stmt = this.bd.getConnection().prepareStatement(sql);
 
         if(b != null)
         {
@@ -104,6 +110,7 @@ public class BookDAO {
 
             books.add(book);
         }
+        stmt.close();
 
         return books;
     }

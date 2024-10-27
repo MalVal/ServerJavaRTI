@@ -46,9 +46,9 @@ public class EVPP implements Protocol {
             return new PayCaddyResponse(true);
         }
         if(request instanceof SelectBookRequest selectBookRequest) {
-            BookDAO bookDAO = new BookDAO();
+            BookDAO bookDAO = new BookDAO(dataBaseConnection);
             try {
-                return new SelectBookResponse(bookDAO.loadBook(selectBookRequest.getBookSearchVM(), dataBaseConnection));
+                return new SelectBookResponse(bookDAO.loadBook(selectBookRequest.getBookSearchVM()));
             }
             catch (SQLException sqlException) {
                 return new ErrorResponse(sqlException.getMessage());

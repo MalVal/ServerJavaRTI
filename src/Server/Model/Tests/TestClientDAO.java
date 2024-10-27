@@ -1,9 +1,10 @@
 package Server.Model.Tests;
 
-import Server.Model.DataAcessObject.BookDAO;
+
+import Server.Model.DataAcessObject.ClientDAO;
 import Server.Model.DataBase.DataBaseConnection;
-import Server.Model.Entities.Book;
-import Server.Model.SearchViewModel.BookSearchVM;
+import Server.Model.Entities.Client;
+import Server.Model.SearchViewModel.ClientSearchVM;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 
-public class TestBookDAO {
+public class TestClientDAO {
     public static void main(String[] args) {
 
         Properties properties = new Properties();
@@ -30,14 +31,17 @@ public class TestBookDAO {
             DataBaseConnection dbc = new DataBaseConnection(type, server, name, user, password);
             System.out.println("Connection à la base de données réussie !");
 
-            BookSearchVM bookSearchVM = new BookSearchVM();
-            bookSearchVM.setAuthorLastName("Malchair");
-            BookDAO dao = new BookDAO(dbc);
-            ArrayList<Book> books = dao.loadBook(bookSearchVM);
+            ClientSearchVM clientSearchVM = new ClientSearchVM();
+            ClientDAO dao = new ClientDAO(dbc);
+            Client c = new Client();
+            c.setLastName("Malchair");
+            c.setFirstName("Valentin");
+            dao.save(c);
+            ArrayList<Client> clients = dao.loadClient(clientSearchVM);
 
-            for(Book book : books) {
-                System.out.println("----------------------------BOOK---------------------------");
-                System.out.println(book);
+            for(Client client : clients) {
+                System.out.println("----------------------------CLIENT---------------------------");
+                System.out.println(client);
             }
 
             dbc.close();

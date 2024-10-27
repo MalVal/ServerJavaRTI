@@ -9,6 +9,7 @@ import java.util.Properties;
 public class ClientController {
 
     public static void main(String[] args) {
+
         Properties properties = new Properties();
         String fileName = "src/config.properties";
 
