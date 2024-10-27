@@ -1,13 +1,17 @@
 package Server.Network.Protocol;
 
 import Server.Model.DataAcessObject.BookDAO;
+import Server.Model.DataAcessObject.ClientDAO;
 import Server.Model.DataBase.DataBaseConnection;
 import Server.Exception.ConnectionEndException;
 import Network.Request.*;
 import Network.Response.*;
+import Server.Model.Entities.Client;
+import Server.Model.SearchViewModel.ClientSearchVM;
 
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class EVPP implements Protocol {
 
@@ -26,8 +30,24 @@ public class EVPP implements Protocol {
     public synchronized Response processRequest(Request request, Socket socket) throws ConnectionEndException {
 
         if(request instanceof ClientRequest) {
-            ClientRequest clientRequest = (ClientRequest) request;
-            return new ClientResponse(1);
+            try {
+                ClientRequest clientRequest = (ClientRequest) request;
+                ClientDAO clientDAO = new ClientDAO(dataBaseConnection);
+
+                if(clientRequest.isNew()) {
+                    clientDAO.save(new Client(null, clientRequest.getLastName(), clientRequest.getFirstName()));
+                }
+
+                ClientSearchVM cs = new ClientSearchVM();
+                cs.setLastName(clientRequest.getLastName());
+                cs.setFirstName(clientRequest.getFirstName());
+                ArrayList<Client> clientArrayList = clientDAO.loadClient(cs);
+
+                return new ClientResponse(clientArrayList.getFirst().getId());
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
+            }
         }
         if(request instanceof AddCaddyItemRequest) {
             AddCaddyItemRequest addCaddyItemRequest = (AddCaddyItemRequest) request;
