@@ -1,7 +1,7 @@
 package Client.Network;
 
-import Network.Request.Request;
-import Network.Response.Response;
+import Client.Network.Request.Request;
+import Client.Network.Response.Response;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

@@ -4,8 +4,8 @@ import Server.Model.DataAcessObject.BookDAO;
 import Server.Model.DataAcessObject.ClientDAO;
 import Server.Model.DataBase.DataBaseConnection;
 import Server.Exception.ConnectionEndException;
-import Network.Request.*;
-import Network.Response.*;
+import Server.Network.Request.*;
+import Server.Network.Response.*;
 import Server.Model.Entities.Client;
 import Server.Model.SearchViewModel.ClientSearchVM;
 

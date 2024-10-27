@@ -1,7 +1,7 @@
 package Server.Network.Protocol;
 
-import Network.Response.Response;
-import Network.Request.Request;
+import Server.Network.Response.Response;
+import Server.Network.Request.Request;
 import Server.Exception.ConnectionEndException;
 
 import java.net.Socket;

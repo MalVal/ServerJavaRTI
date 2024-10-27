@@ -1,6 +1,6 @@
 package Server.Exception;
 
-import Network.Response.Response;
+import Server.Network.Response.Response;
 
 public class ConnectionEndException extends Exception
 {
