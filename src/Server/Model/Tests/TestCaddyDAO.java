@@ -1,19 +1,23 @@
 package Server.Model.Tests;
 
-
-import Server.Model.DataAcessObject.ClientDAO;
+import Server.Model.DataAcessObject.BookDAO;
+import Server.Model.DataAcessObject.CaddyDAO;
 import Server.Model.DataBase.DataBaseConnection;
-import Server.Model.Entities.Client;
-import Server.Model.SearchViewModel.ClientSearchVM;
+import Server.Model.Entities.Book;
+import Server.Model.Entities.Caddy;
+import Server.Model.SearchViewModel.BookSearchVM;
+import Server.Model.SearchViewModel.CaddySearchVM;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Properties;
 
-public class TestClientDAO {
+public class TestCaddyDAO {
+
     public static void main(String[] args) {
 
         Properties properties = new Properties();
@@ -31,17 +35,16 @@ public class TestClientDAO {
             DataBaseConnection dbc = new DataBaseConnection(type, server, name, user, password);
             System.out.println("Connection à la base de données réussie !");
 
-            ClientSearchVM clientSearchVM = new ClientSearchVM();
-            ClientDAO dao = new ClientDAO(dbc);
-            Client c = new Client();
-            c.setLastName("Malchair");
-            c.setFirstName("Aurélien");
-            dao.save(c);
-            ArrayList<Client> clients = dao.loadClient(clientSearchVM);
+            CaddySearchVM caddySearchVM = new CaddySearchVM();
+            CaddyDAO dao = new CaddyDAO(dbc);
 
-            for(Client client : clients) {
-                System.out.println("----------------------------CLIENT---------------------------");
-                System.out.println(client);
+            dao.save(new Caddy(null, 2, LocalDate.now(), 0.0, false));
+
+            ArrayList<Caddy> caddies = dao.load(caddySearchVM);
+
+            for(Caddy caddy : caddies) {
+                System.out.println("----------------------------CADDY---------------------------");
+                System.out.println(caddy);
             }
 
             dbc.close();
