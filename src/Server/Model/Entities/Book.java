@@ -38,7 +38,7 @@ public class Book implements Serializable {
         this.publishYear = publishYear;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

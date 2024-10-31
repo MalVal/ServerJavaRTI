@@ -2,8 +2,10 @@ package Server.Model.DataAcessObject;
 
 import Server.Model.DataBase.DataBaseConnection;
 import Server.Model.Entities.Book;
+import Server.Model.Entities.Caddy;
 import Server.Model.SearchViewModel.BookSearchVM;
 
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -113,5 +115,21 @@ public class BookDAO {
         stmt.close();
 
         return books;
+    }
+
+    public void save(Book c) throws SQLException {
+        String sql;
+        if (c != null) {
+            if (c.getId() != null) { // UPDATE
+                sql = "UPDATE books SET "
+                        + " quantity = ?, "
+                        + " WHERE id = ?";
+                PreparedStatement pStmt = bd.getConnection().prepareStatement(sql);
+                pStmt.setInt(1,c.getStockQuantity());
+                pStmt.setInt(2,c.getId());
+                pStmt.executeUpdate();
+                pStmt.close();
+            }
+        }
     }
 }
