@@ -66,43 +66,49 @@ public class EVPP implements Protocol {
         }
         if(request instanceof AddCaddyItemRequest) {
             try {
-                AddCaddyItemRequest addCaddyItemRequest = (AddCaddyItemRequest) request;
+                if(currentClient != null) {
+                    AddCaddyItemRequest addCaddyItemRequest = (AddCaddyItemRequest) request;
 
-                if(currentCaddy == null) {
-                    currentCaddy = new Caddy(null, currentClient.getId(), LocalDate.now(), 0.0, false);
-                    CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
-                    caddyDAO.save(currentCaddy);
+                    if(currentCaddy == null) {
+                        currentCaddy = new Caddy(null, currentClient.getId(), LocalDate.now(), 0.0, false);
+                        CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                        caddyDAO.save(currentCaddy);
+                    }
+
+                    CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
+                    CaddyItem caddyItem = new CaddyItem(null, currentCaddy.getId(), addCaddyItemRequest.getIdBook(), addCaddyItemRequest.getQuantity());
+
+                    BookDAO bookDAO = new BookDAO(dataBaseConnection);
+                    BookSearchVM bookSearchVM = new BookSearchVM();
+                    bookSearchVM.setIdBook(addCaddyItemRequest.getIdBook());
+                    ArrayList<Book> bookArrayList = bookDAO.loadBook(bookSearchVM);
+
+                    if(bookArrayList.getFirst().getStockQuantity() < addCaddyItemRequest.getQuantity()) {
+                        return new AddCaddyItemResponse(false);
+                    }
+
+                    int quantity = bookArrayList.getFirst().getStockQuantity();
+                    quantity -= addCaddyItemRequest.getQuantity();
+                    bookArrayList.getFirst().setStockQuantity(quantity);
+
+                    CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                    caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                    caddyItemSearchVM.setBookId(bookArrayList.getFirst().getId());
+                    ArrayList<CaddyItem> caddyItemArrayList = caddyItemDAO.load(caddyItemSearchVM);
+
+                    if(!caddyItemArrayList.isEmpty()) {
+                        caddyItem.setId(caddyItemArrayList.getFirst().getId());
+                    }
+
+                    caddyItemDAO.save(caddyItem);
+                    bookDAO.save(bookArrayList.getFirst());
+
+                    return new AddCaddyItemResponse(true);
                 }
-
-                CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
-                CaddyItem caddyItem = new CaddyItem(null, currentCaddy.getId(), addCaddyItemRequest.getIdBook(), addCaddyItemRequest.getQuantity());
-
-                BookDAO bookDAO = new BookDAO(dataBaseConnection);
-                BookSearchVM bookSearchVM = new BookSearchVM();
-                bookSearchVM.setIdBook(addCaddyItemRequest.getIdBook());
-                ArrayList<Book> bookArrayList = bookDAO.loadBook(bookSearchVM);
-
-                if(bookArrayList.getFirst().getStockQuantity() < addCaddyItemRequest.getQuantity()) {
-                    return new AddCaddyItemResponse(false);
+                else
+                {
+                    throw new Exception("Not connected");
                 }
-
-                int quantity = bookArrayList.getFirst().getStockQuantity();
-                quantity -= addCaddyItemRequest.getQuantity();
-                bookArrayList.getFirst().setStockQuantity(quantity);
-
-                CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
-                caddyItemSearchVM.setCaddyId(currentCaddy.getId());
-                caddyItemSearchVM.setBookId(bookArrayList.getFirst().getId());
-                ArrayList<CaddyItem> caddyItemArrayList = caddyItemDAO.load(caddyItemSearchVM);
-
-                if(!caddyItemArrayList.isEmpty()) {
-                    caddyItem.setId(caddyItemArrayList.getFirst().getId());
-                }
-
-                caddyItemDAO.save(caddyItem);
-                bookDAO.save(bookArrayList.getFirst());
-
-                return new AddCaddyItemResponse(true);
             }
             catch (Exception e) {
                 return new ErrorResponse(e.getMessage());
@@ -110,21 +116,26 @@ public class EVPP implements Protocol {
         }
         if(request instanceof CancelCaddyRequest) {
             try {
-                CancelCaddyRequest cancelCaddyRequest = (CancelCaddyRequest) request;
-                CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
-                CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
-                caddyItemSearchVM.setCaddyId(currentCaddy.getId());
-                ArrayList<CaddyItem> caddyItems = caddyItemDAO.load(caddyItemSearchVM);
+                if(currentClient != null) {
+                    CancelCaddyRequest cancelCaddyRequest = (CancelCaddyRequest) request;
+                    CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
+                    CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                    caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                    ArrayList<CaddyItem> caddyItems = caddyItemDAO.load(caddyItemSearchVM);
 
-                for(CaddyItem caddyItem : caddyItems) {
-                    caddyItem.setQuantity(null);
-                    caddyItemDAO.delete(caddyItem);
+                    for(CaddyItem caddyItem : caddyItems) {
+                        caddyItem.setQuantity(null);
+                        caddyItemDAO.delete(caddyItem);
+                    }
+
+                    CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                    caddyDAO.delete(currentCaddy);
+                    currentCaddy = null;
+                    return new CancelCaddyResponse(false);
                 }
-
-                CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
-                caddyDAO.delete(currentCaddy);
-                currentCaddy = null;
-                return new CancelCaddyResponse(false);
+                else {
+                    throw new Exception("Not connected");
+                }
             }
             catch (Exception e) {
                 return new ErrorResponse(e.getMessage());
@@ -132,37 +143,42 @@ public class EVPP implements Protocol {
         }
         if(request instanceof DeleteCaddyItemRequest) {
             try {
-                DeleteCaddyItemRequest deleteCaddyItemRequest = (DeleteCaddyItemRequest) request;
+                if(currentClient != null) {
+                    DeleteCaddyItemRequest deleteCaddyItemRequest = (DeleteCaddyItemRequest) request;
 
-                CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
-                CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
-                caddyItemSearchVM.setCaddyId(currentCaddy.getId());
-                caddyItemSearchVM.setBookId(deleteCaddyItemRequest.getIdBook());
-                ArrayList<CaddyItem> caddyItemArrayList = caddyItemDAO.load(caddyItemSearchVM);
+                    CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
+                    CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                    caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                    caddyItemSearchVM.setBookId(deleteCaddyItemRequest.getIdBook());
+                    ArrayList<CaddyItem> caddyItemArrayList = caddyItemDAO.load(caddyItemSearchVM);
 
-                if(caddyItemArrayList.isEmpty()) {
-                    return new DeleteCaddyItemResponse(false);
-                }
+                    if(caddyItemArrayList.isEmpty()) {
+                        return new DeleteCaddyItemResponse(false);
+                    }
 
-                if(deleteCaddyItemRequest.getQuantity() == null) {
-                    caddyItemDAO.delete(caddyItemArrayList.getFirst().getId());
+                    if(deleteCaddyItemRequest.getQuantity() == null) {
+                        caddyItemDAO.delete(caddyItemArrayList.getFirst().getId());
+                        return new DeleteCaddyItemResponse(true);
+                    }
+
+                    int quantity = caddyItemArrayList.getFirst().getQuantity() - deleteCaddyItemRequest.getQuantity();
+                    CaddyItem caddyItem = new CaddyItem(caddyItemArrayList.getFirst().getId(), currentCaddy.getId(), deleteCaddyItemRequest.getIdBook(), quantity);
+                    if(quantity < 0) {
+                        return new DeleteCaddyItemResponse(false);
+                    }
+                    else if(quantity == 0) {
+                        caddyItemDAO.delete(caddyItem);
+                    }
+                    else
+                    {
+                        caddyItemDAO.save(caddyItem);
+                    }
+
                     return new DeleteCaddyItemResponse(true);
                 }
-
-                int quantity = caddyItemArrayList.getFirst().getQuantity() - deleteCaddyItemRequest.getQuantity();
-                CaddyItem caddyItem = new CaddyItem(caddyItemArrayList.getFirst().getId(), currentCaddy.getId(), deleteCaddyItemRequest.getIdBook(), quantity);
-                if(quantity < 0) {
-                    return new DeleteCaddyItemResponse(false);
+                else {
+                    throw new Exception("Not connected");
                 }
-                else if(quantity == 0) {
-                    caddyItemDAO.delete(caddyItem);
-                }
-                else
-                {
-                    caddyItemDAO.save(caddyItem);
-                }
-
-                return new DeleteCaddyItemResponse(true);
             }
             catch (Exception e) {
                 return new ErrorResponse(e.getMessage());
@@ -170,15 +186,21 @@ public class EVPP implements Protocol {
         }
         if(request instanceof PayCaddyRequest) {
             try {
-                PayCaddyRequest payCaddyRequest = (PayCaddyRequest) request;
-                if(currentCaddy == null) {
-                    return new PayCaddyResponse(false);
+                if(currentClient != null) {
+                    PayCaddyRequest payCaddyRequest = (PayCaddyRequest) request;
+                    if(currentCaddy == null) {
+                        return new PayCaddyResponse(false);
+                    }
+                    CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                    currentCaddy.setPayed(true);
+                    caddyDAO.save(currentCaddy);
+                    currentCaddy = null;
+                    return new PayCaddyResponse(true);
                 }
-                CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
-                currentCaddy.setPayed(true);
-                caddyDAO.save(currentCaddy);
-                currentCaddy = null;
-                return new PayCaddyResponse(true);
+                else
+                {
+                    throw new Exception("Not connected");
+                }
             }
             catch (Exception e) {
                 return new ErrorResponse(e.getMessage());
