@@ -6,13 +6,13 @@ import Server.Model.DataAcessObject.CaddyItemDAO;
 import Server.Model.DataAcessObject.ClientDAO;
 import Server.Model.DataBase.DataBaseConnection;
 import Server.Exception.ConnectionEndException;
-import Server.Model.Entities.Book;
+import Common.Model.Entities.Book;
 import Server.Model.Entities.Caddy;
 import Server.Model.Entities.CaddyItem;
-import Server.Model.SearchViewModel.BookSearchVM;
+import Common.Model.SearchViewModel.BookSearchVM;
 import Server.Model.SearchViewModel.CaddyItemSearchVM;
-import Server.Network.Request.*;
-import Server.Network.Response.*;
+import Common.Network.Request.*;
+import Common.Network.Response.*;
 import Server.Model.Entities.Client;
 import Server.Model.SearchViewModel.ClientSearchVM;
 

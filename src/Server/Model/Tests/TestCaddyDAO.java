@@ -1,11 +1,8 @@
 package Server.Model.Tests;
 
-import Server.Model.DataAcessObject.BookDAO;
 import Server.Model.DataAcessObject.CaddyDAO;
 import Server.Model.DataBase.DataBaseConnection;
-import Server.Model.Entities.Book;
 import Server.Model.Entities.Caddy;
-import Server.Model.SearchViewModel.BookSearchVM;
 import Server.Model.SearchViewModel.CaddySearchVM;
 
 import java.io.FileInputStream;

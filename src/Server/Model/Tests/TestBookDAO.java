@@ -2,8 +2,8 @@ package Server.Model.Tests;
 
 import Server.Model.DataAcessObject.BookDAO;
 import Server.Model.DataBase.DataBaseConnection;
-import Server.Model.Entities.Book;
-import Server.Model.SearchViewModel.BookSearchVM;
+import Common.Model.Entities.Book;
+import Common.Model.SearchViewModel.BookSearchVM;
 
 import java.io.FileInputStream;
 import java.io.IOException;

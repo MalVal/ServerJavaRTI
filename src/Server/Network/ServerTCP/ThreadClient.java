@@ -2,8 +2,8 @@ package Server.Network.ServerTCP;
 
 import Server.Logger.Logger;
 import Server.Network.Protocol.Protocol;
-import Server.Network.Request.Request;
-import Server.Network.Response.Response;
+import Common.Network.Request.Request;
+import Common.Network.Response.Response;
 import Server.Exception.ConnectionEndException;
 
 import java.io.*;

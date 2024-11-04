@@ -1,11 +1,9 @@
 package Server.Model.DataAcessObject;
 
 import Server.Model.DataBase.DataBaseConnection;
-import Server.Model.Entities.Book;
-import Server.Model.Entities.Caddy;
-import Server.Model.SearchViewModel.BookSearchVM;
+import Common.Model.Entities.Book;
+import Common.Model.SearchViewModel.BookSearchVM;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
