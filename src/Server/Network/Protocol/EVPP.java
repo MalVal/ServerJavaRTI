@@ -10,6 +10,7 @@ import Server.Model.Entities.Book;
 import Server.Model.Entities.Caddy;
 import Server.Model.Entities.CaddyItem;
 import Server.Model.SearchViewModel.BookSearchVM;
+import Server.Model.SearchViewModel.CaddyItemSearchVM;
 import Server.Network.Request.*;
 import Server.Network.Response.*;
 import Server.Model.Entities.Client;
@@ -89,8 +90,18 @@ public class EVPP implements Protocol {
                 quantity -= addCaddyItemRequest.getQuantity();
                 bookArrayList.getFirst().setStockQuantity(quantity);
 
-                bookDAO.save(bookArrayList.getFirst());
+                CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                caddyItemSearchVM.setBookId(bookArrayList.getFirst().getId());
+                ArrayList<CaddyItem> caddyItemArrayList = caddyItemDAO.load(caddyItemSearchVM);
+
+                if(!caddyItemArrayList.isEmpty()) {
+                    caddyItem.setId(caddyItemArrayList.getFirst().getId());
+                }
+
                 caddyItemDAO.save(caddyItem);
+                bookDAO.save(bookArrayList.getFirst());
+
                 return new AddCaddyItemResponse(true);
             }
             catch (Exception e) {
@@ -98,16 +109,80 @@ public class EVPP implements Protocol {
             }
         }
         if(request instanceof CancelCaddyRequest) {
-            CancelCaddyRequest cancelCaddyRequest = (CancelCaddyRequest) request;
-            return new CancelCaddyResponse(false);
+            try {
+                CancelCaddyRequest cancelCaddyRequest = (CancelCaddyRequest) request;
+                CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
+                CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                ArrayList<CaddyItem> caddyItems = caddyItemDAO.load(caddyItemSearchVM);
+
+                for(CaddyItem caddyItem : caddyItems) {
+                    caddyItem.setQuantity(null);
+                    caddyItemDAO.delete(caddyItem);
+                }
+
+                CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                caddyDAO.delete(currentCaddy);
+                currentCaddy = null;
+                return new CancelCaddyResponse(false);
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
+            }
         }
         if(request instanceof DeleteCaddyItemRequest) {
-            DeleteCaddyItemRequest deleteCaddyItemRequest = (DeleteCaddyItemRequest) request;
-            return new DeleteCaddyItemResponse(false);
+            try {
+                DeleteCaddyItemRequest deleteCaddyItemRequest = (DeleteCaddyItemRequest) request;
+
+                CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
+                CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                caddyItemSearchVM.setBookId(deleteCaddyItemRequest.getIdBook());
+                ArrayList<CaddyItem> caddyItemArrayList = caddyItemDAO.load(caddyItemSearchVM);
+
+                if(caddyItemArrayList.isEmpty()) {
+                    return new DeleteCaddyItemResponse(false);
+                }
+
+                if(deleteCaddyItemRequest.getQuantity() == null) {
+                    caddyItemDAO.delete(caddyItemArrayList.getFirst().getId());
+                    return new DeleteCaddyItemResponse(true);
+                }
+
+                int quantity = caddyItemArrayList.getFirst().getQuantity() - deleteCaddyItemRequest.getQuantity();
+                CaddyItem caddyItem = new CaddyItem(caddyItemArrayList.getFirst().getId(), currentCaddy.getId(), deleteCaddyItemRequest.getIdBook(), quantity);
+                if(quantity < 0) {
+                    return new DeleteCaddyItemResponse(false);
+                }
+                else if(quantity == 0) {
+                    caddyItemDAO.delete(caddyItem);
+                }
+                else
+                {
+                    caddyItemDAO.save(caddyItem);
+                }
+
+                return new DeleteCaddyItemResponse(true);
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
+            }
         }
         if(request instanceof PayCaddyRequest) {
-            PayCaddyRequest payCaddyRequest = (PayCaddyRequest) request;
-            return new PayCaddyResponse(true);
+            try {
+                PayCaddyRequest payCaddyRequest = (PayCaddyRequest) request;
+                if(currentCaddy == null) {
+                    return new PayCaddyResponse(false);
+                }
+                CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                currentCaddy.setPayed(true);
+                caddyDAO.save(currentCaddy);
+                currentCaddy = null;
+                return new PayCaddyResponse(true);
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
+            }
         }
         if(request instanceof SelectBookRequest selectBookRequest) {
             BookDAO bookDAO = new BookDAO(dataBaseConnection);

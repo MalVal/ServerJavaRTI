@@ -28,12 +28,20 @@ public class CaddyItemDAO {
             if (csvm.getCaddyId() != null) {
                 where += "AND caddyId = ? ";
             }
+            if(csvm.getBookId() != null) {
+                where += "AND bookId = ? ";
+            }
             sql += where;
         }
         PreparedStatement stmt = dataBaseConnection.getConnection().prepareStatement(sql);
         if (csvm != null) {
+            int i = 1;
             if (csvm.getCaddyId() != null) {
-                stmt.setInt(1, csvm.getCaddyId());
+                stmt.setInt(i, csvm.getCaddyId());
+                i++;
+            }
+            if (csvm.getBookId() != null) {
+                stmt.setInt(i, csvm.getBookId());
             }
         }
         ResultSet rs = stmt.executeQuery();

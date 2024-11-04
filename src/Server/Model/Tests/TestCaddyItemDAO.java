@@ -34,7 +34,7 @@ public class TestCaddyItemDAO {
                 DataBaseConnection dbc = new DataBaseConnection(type, server, name, user, password);
                 System.out.println("Connection à la base de données réussie !");
 
-                CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM(2);
+                CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
                 CaddyItemDAO dao = new CaddyItemDAO(dbc);
 
                 //dao.save(new CaddyItem(null, 2, 1, 2));
