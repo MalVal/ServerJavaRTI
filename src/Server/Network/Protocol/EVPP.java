@@ -47,6 +47,13 @@ public class EVPP implements Protocol {
                 ClientDAO clientDAO = new ClientDAO(dataBaseConnection);
 
                 if(clientRequest.isNew()) {
+                    ClientSearchVM cs = new ClientSearchVM();
+                    cs.setLastName(clientRequest.getLastName());
+                    cs.setFirstName(clientRequest.getFirstName());
+                    ArrayList<Client> clientArrayList = clientDAO.loadClient(cs);
+                    if(!clientArrayList.isEmpty()) {
+                        throw new Exception("Client already exists");
+                    }
                     currentClient = new Client(null, clientRequest.getLastName(), clientRequest.getFirstName());
                     clientDAO.save(currentClient);
                 }

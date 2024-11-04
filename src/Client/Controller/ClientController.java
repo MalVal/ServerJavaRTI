@@ -1,5 +1,7 @@
 package Client.Controller;
 
+import Client.GUI.MainWindow;
+import Client.GUI.PurchaseInterface;
 import Client.Network.Client;
 
 import java.io.FileInputStream;
@@ -18,7 +20,7 @@ public class ClientController {
             String addressIp = properties.getProperty("serv.address");
             String portPayment = properties.getProperty("serv.portPayment");
 
-            new ClientController(addressIp, Integer.parseInt(portPayment));
+            new ClientController(addressIp, Integer.parseInt(portPayment), new MainWindow());
         }
         catch (Exception e) {
             System.out.println("Error :" + e.getMessage());
@@ -26,13 +28,17 @@ public class ClientController {
     }
 
     private Client clientNetwork;
+    private final PurchaseInterface gui;
 
-    public ClientController(String ipServer, Integer portServer) {
+    public ClientController(String ipServer, Integer portServer, PurchaseInterface gui) {
+        this.gui = gui;
+        gui.display();
+        gui.displayConnectionMenu();
         try {
-            clientNetwork = new Client(ipServer, portServer);
+            this.clientNetwork = new Client(ipServer, portServer);
         }
         catch (Exception e) {
-            System.out.println("Connection is impossible :" + e.getMessage());
+            this.gui.displayMessage("Connection is impossible :" + e.getMessage(), true);
         }
     }
 }
