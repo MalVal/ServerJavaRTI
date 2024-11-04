@@ -117,7 +117,6 @@ public class EVPP implements Protocol {
         if(request instanceof CancelCaddyRequest) {
             try {
                 if(currentClient != null) {
-                    CancelCaddyRequest cancelCaddyRequest = (CancelCaddyRequest) request;
                     CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
                     CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
                     caddyItemSearchVM.setCaddyId(currentCaddy.getId());
@@ -187,7 +186,6 @@ public class EVPP implements Protocol {
         if(request instanceof PayCaddyRequest) {
             try {
                 if(currentClient != null) {
-                    PayCaddyRequest payCaddyRequest = (PayCaddyRequest) request;
                     if(currentCaddy == null) {
                         return new PayCaddyResponse(false);
                     }
