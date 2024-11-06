@@ -155,8 +155,7 @@ public class EVPP implements Protocol {
 
                     CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
                     caddyDAO.delete(currentCaddy);
-                    currentCaddy = null;
-                    return new CancelCaddyResponse(false);
+                    return new CancelCaddyResponse(true);
                 }
                 else {
                     throw new Exception("Not connected");

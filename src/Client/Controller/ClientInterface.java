@@ -6,4 +6,5 @@ public interface ClientInterface {
     void retrieveCaddy();
     void addToCaddy(Integer idBook, Integer quantity);
     void removeFromCaddy(Integer idBook, Integer quantity);
+    void cancelCaddy();
 }

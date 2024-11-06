@@ -59,6 +59,10 @@ public class MainWindow extends JFrame implements PurchaseInterface {
             this.clearField();
             this.client.retrieveBooks(null, null, null, null, null, null);
         });
+
+        this.cancelButton.addActionListener(e -> {
+            this.client.cancelCaddy();
+        });
     }
 
     private void clearField() {
