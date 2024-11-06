@@ -1,12 +1,9 @@
 package Server.Model.Tests;
 
-import Server.Model.DataAcessObject.CaddyDAO;
 import Server.Model.DataAcessObject.CaddyItemDAO;
 import Server.Model.DataBase.DataBaseConnection;
-import Server.Model.Entities.Caddy;
-import Server.Model.Entities.CaddyItem;
+import Common.Model.Entities.CaddyItem;
 import Server.Model.SearchViewModel.CaddyItemSearchVM;
-import Server.Model.SearchViewModel.CaddySearchVM;
 
 import java.io.FileInputStream;
 import java.io.IOException;

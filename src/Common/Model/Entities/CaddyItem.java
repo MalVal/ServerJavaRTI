@@ -1,6 +1,8 @@
-package Server.Model.Entities;
+package Common.Model.Entities;
 
-public class CaddyItem {
+import java.io.Serializable;
+
+public class CaddyItem implements Serializable {
 
     private Integer id;
     private Integer caddyId;

@@ -2,6 +2,7 @@ package Client.GUI;
 
 import Client.Controller.ClientInterface;
 import Common.Model.Entities.Book;
+import Common.Model.Entities.CaddyItem;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -30,6 +31,9 @@ public class MainWindow extends JFrame implements PurchaseInterface {
     private JButton resetButton;
     private JTabbedPane connectedPanel;
     private JPanel caddyPanel;
+    private JTable caddyTable;
+    private JButton buyButton;
+    private JButton cancelButton;
 
     public MainWindow() {
         this.setTitle("Book purchase");
@@ -100,7 +104,7 @@ public class MainWindow extends JFrame implements PurchaseInterface {
     @Override
     public void displayBooks(ArrayList<Book> books) {
 
-        String[] columnNames = {"Id", "Author", "Subject", "Title", "ISBN", "PageCount", "StockQuantity", "Price", "PublishYear", "Quantity", "Action"};
+        String[] columnNames = {"Id", "Author", "Subject", "Title", "ISBN", "PageCount", "StockQuantity", "Price", "PublishYear", "Quantity to add", "Action"};
         NonEditableTableModel model = new NonEditableTableModel(columnNames, 0);
 
         for (Book book : books) {
@@ -121,9 +125,11 @@ public class MainWindow extends JFrame implements PurchaseInterface {
         }
 
         booksTable.setModel(model);
+        booksTable.revalidate();
+        booksTable.repaint();
         booksTable.getTableHeader().setReorderingAllowed(false);
         booksTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        booksTable.getColumn("Quantity").setCellEditor(new SpinnerEditor());
+        booksTable.getColumn("Quantity to add").setCellEditor(new SpinnerEditor());
         booksTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
         booksTable.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox(), this.client));
     }
@@ -197,11 +203,13 @@ public class MainWindow extends JFrame implements PurchaseInterface {
         @Override
         public Object getCellEditorValue() {
             if (isPushed) {
-                int selectedRow = booksTable.getSelectedRow();
-                if (selectedRow != -1) {  // Vérification que l'index de ligne est valide
-                    int bookId = (int) booksTable.getValueAt(selectedRow, 0);
-                    int quantity = (int) booksTable.getValueAt(selectedRow, 9);
-                    this.client.addToCaddy(bookId, quantity);
+                int row = booksTable.getEditingRow();
+                if (row != -1) {
+                    if (row >= 0 && row < booksTable.getRowCount()) {
+                        int bookId = (int) booksTable.getValueAt(row, 0);
+                        int quantity = (int) booksTable.getValueAt(row, 9);
+                        this.client.addToCaddy(bookId, quantity);
+                    }
                 }
             }
             isPushed = false;
@@ -213,5 +221,32 @@ public class MainWindow extends JFrame implements PurchaseInterface {
             isPushed = false;
             return super.stopCellEditing();
         }
+    }
+
+    @Override
+    public void displayCaddy(ArrayList<CaddyItem> items) {
+
+        String[] columnNames = {"Id", "Book id", "Quantity", "Quantity to remove", "Action"};
+        NonEditableTableModel model = new NonEditableTableModel(columnNames, 0);
+
+        for (CaddyItem item : items) {
+            Object[] rowData = {
+                    item.getId(),
+                    item.getBookId(),
+                    item.getQuantity(),
+                    0,
+                    "Remove"
+            };
+            model.addRow(rowData);
+        }
+
+        caddyTable.setModel(model);
+        caddyTable.revalidate();
+        caddyTable.repaint();
+        caddyTable.getTableHeader().setReorderingAllowed(false);
+        caddyTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        caddyTable.getColumn("Quantity").setCellEditor(new SpinnerEditor());
+        caddyTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
+        caddyTable.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox(), this.client));
     }
 }

@@ -1,16 +1,12 @@
 package Server.Model.DataAcessObject;
 
 import Server.Model.DataBase.DataBaseConnection;
-import Server.Model.Entities.Caddy;
-import Server.Model.Entities.CaddyItem;
+import Common.Model.Entities.CaddyItem;
 import Server.Model.SearchViewModel.CaddyItemSearchVM;
-import Server.Model.SearchViewModel.CaddySearchVM;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class CaddyItemDAO {

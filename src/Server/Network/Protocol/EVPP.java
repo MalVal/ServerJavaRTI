@@ -8,7 +8,7 @@ import Server.Model.DataBase.DataBaseConnection;
 import Server.Exception.ConnectionEndException;
 import Common.Model.Entities.Book;
 import Server.Model.Entities.Caddy;
-import Server.Model.Entities.CaddyItem;
+import Common.Model.Entities.CaddyItem;
 import Common.Model.SearchViewModel.BookSearchVM;
 import Server.Model.SearchViewModel.CaddyItemSearchVM;
 import Common.Network.Request.*;
@@ -113,6 +113,23 @@ public class EVPP implements Protocol {
                 }
                 else
                 {
+                    throw new Exception("Not connected");
+                }
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
+            }
+        }
+        if(request instanceof GetCaddyItemRequest) {
+            try {
+                if(currentClient != null) {
+                    CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                    caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                    CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
+                    ArrayList<CaddyItem> items = caddyItemDAO.load(caddyItemSearchVM);
+                    return new GetCaddyItemResponse(items);
+                }
+                else {
                     throw new Exception("Not connected");
                 }
             }

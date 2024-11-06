@@ -89,13 +89,33 @@ public class ClientController implements ClientInterface {
     }
 
     @Override
+    public void retrieveCaddy() {
+        try {
+            Response response = this.clientNetwork.send(new GetCaddyItemRequest());
+            if(response instanceof GetCaddyItemResponse) {
+                this.gui.displayCaddy(((GetCaddyItemResponse) response).getCaddy());
+            }
+            else if (response instanceof ErrorResponse) {
+                throw new Exception(((ErrorResponse) response).getMessage());
+            }
+            else {
+                throw new Exception("Invalid response");
+            }
+        }
+        catch (Exception exception) {
+            this.gui.displayMessage(exception.getMessage(), true);
+        }
+    }
+
+    @Override
     public void addToCaddy(Integer idBook, Integer quantity) {
         try {
             Response response = this.clientNetwork.send(new AddCaddyItemRequest(idBook, quantity));
             if(response instanceof AddCaddyItemResponse) {
                 if(((AddCaddyItemResponse) response).getResponse()) {
-                    this.gui.displayMessage("Add with success", false);
                     this.retrieveBooks(null, null, null, null, null, null);
+                    this.gui.displayMessage("Add with success", false);
+                    this.retrieveCaddy();
                 }
                 else {
                     this.gui.displayMessage("Error when adding", true);
