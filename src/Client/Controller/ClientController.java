@@ -132,4 +132,30 @@ public class ClientController implements ClientInterface {
             this.gui.displayMessage(exception.getMessage(), true);
         }
     }
+
+    @Override
+    public void removeFromCaddy(Integer idBook, Integer quantity) {
+        try {
+            Response response = this.clientNetwork.send(new DeleteCaddyItemRequest(idBook, quantity));
+            if(response instanceof DeleteCaddyItemResponse) {
+                if(((DeleteCaddyItemResponse) response).getResponse()) {
+                    this.retrieveBooks(null, null, null, null, null, null);
+                    this.gui.displayMessage("Remove with success", false);
+                    this.retrieveCaddy();
+                }
+                else {
+                    this.gui.displayMessage("Error when removing", true);
+                }
+            }
+            else if (response instanceof ErrorResponse) {
+                throw new Exception(((ErrorResponse) response).getMessage());
+            }
+            else {
+                throw new Exception("Invalid response");
+            }
+        }
+        catch (Exception exception) {
+            this.gui.displayMessage(exception.getMessage(), true);
+        }
+    }
 }

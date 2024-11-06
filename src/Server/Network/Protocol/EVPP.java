@@ -62,6 +62,9 @@ public class EVPP implements Protocol {
                     cs.setLastName(clientRequest.getLastName());
                     cs.setFirstName(clientRequest.getFirstName());
                     ArrayList<Client> clientArrayList = clientDAO.loadClient(cs);
+                    if(clientArrayList.isEmpty()) {
+                        throw new Exception("Client doesn't exist");
+                    }
                     currentClient = clientArrayList.getFirst();
                 }
 
@@ -195,6 +198,15 @@ public class EVPP implements Protocol {
                     {
                         caddyItemDAO.save(caddyItem);
                     }
+
+                    BookDAO bookDAO = new BookDAO(dataBaseConnection);
+                    BookSearchVM bookSearchVM = new BookSearchVM();
+                    bookSearchVM.setIdBook(deleteCaddyItemRequest.getIdBook());
+                    ArrayList<Book> bookArrayList = bookDAO.loadBook(bookSearchVM);
+                    int newQuantityToAdd = bookArrayList.getFirst().getStockQuantity();
+                    newQuantityToAdd += deleteCaddyItemRequest.getQuantity();
+                    bookArrayList.getFirst().setStockQuantity(newQuantityToAdd);
+                    bookDAO.save(bookArrayList.getFirst());
 
                     return new DeleteCaddyItemResponse(true);
                 }
