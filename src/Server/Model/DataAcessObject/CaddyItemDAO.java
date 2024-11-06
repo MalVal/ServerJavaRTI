@@ -68,7 +68,7 @@ public class CaddyItemDAO {
                 sql = "UPDATE caddy_items SET "
                         + " caddyId = ?, "
                         + " bookId = ?, "
-                        + " quantity = ?, "
+                        + " quantity = ? "
                         + " WHERE id = ?";
                 PreparedStatement pStmt = dataBaseConnection.getConnection().prepareStatement(sql);
                 pStmt.setInt(1,c.getCaddyId());

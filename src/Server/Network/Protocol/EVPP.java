@@ -106,7 +106,6 @@ public class EVPP implements Protocol {
                     if(!caddyItemArrayList.isEmpty()) {
                         caddyItem.setId(caddyItemArrayList.getFirst().getId());
                     }
-
                     caddyItemDAO.save(caddyItem);
                     bookDAO.save(bookArrayList.getFirst());
 

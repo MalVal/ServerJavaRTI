@@ -120,11 +120,11 @@ public class BookDAO {
         if (c != null) {
             if (c.getId() != null) { // UPDATE
                 sql = "UPDATE books SET "
-                        + " quantity = ?, "
-                        + " WHERE id = ?";
+                        + "stock_quantity = ? "
+                        + "WHERE id = ?";  // Suppression de la virgule ici
                 PreparedStatement pStmt = bd.getConnection().prepareStatement(sql);
-                pStmt.setInt(1,c.getStockQuantity());
-                pStmt.setInt(2,c.getId());
+                pStmt.setInt(1, c.getStockQuantity());
+                pStmt.setInt(2, c.getId());
                 pStmt.executeUpdate();
                 pStmt.close();
             }

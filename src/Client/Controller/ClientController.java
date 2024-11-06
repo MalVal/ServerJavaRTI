@@ -54,8 +54,8 @@ public class ClientController implements ClientInterface {
             Response response = this.clientNetwork.send(new ClientRequest(lastname, firstname, isNew));
             if(response instanceof ClientResponse) {
                 this.currentClientId = ((ClientResponse) response).getIdClient();
-                this.retreiveBooks(null, null, null, null, null, null);
-                this.gui.displayPurchaseMenu();
+                this.retrieveBooks(null, null, null, null, null, null);
+                this.gui.displayConnectedPanel();
             }
             else if (response instanceof ErrorResponse) {
                 throw new Exception(((ErrorResponse) response).getMessage());
@@ -70,11 +70,36 @@ public class ClientController implements ClientInterface {
     }
 
     @Override
-    public void retreiveBooks(Integer idBook, String authorLastName, String subjectName, String title, String isbn, Integer publishYear) {
+    public void retrieveBooks(Integer idBook, String authorLastName, String subjectName, String title, String isbn, Integer publishYear) {
         try {
             Response response = this.clientNetwork.send(new SelectBookRequest(new BookSearchVM(idBook, authorLastName, subjectName, title, isbn, publishYear)));
             if(response instanceof SelectBookResponse) {
                 this.gui.displayBooks(((SelectBookResponse) response).getBooks());
+            }
+            else if (response instanceof ErrorResponse) {
+                throw new Exception(((ErrorResponse) response).getMessage());
+            }
+            else {
+                throw new Exception("Invalid response");
+            }
+        }
+        catch (Exception exception) {
+            this.gui.displayMessage(exception.getMessage(), true);
+        }
+    }
+
+    @Override
+    public void addToCaddy(Integer idBook, Integer quantity) {
+        try {
+            Response response = this.clientNetwork.send(new AddCaddyItemRequest(idBook, quantity));
+            if(response instanceof AddCaddyItemResponse) {
+                if(((AddCaddyItemResponse) response).getResponse()) {
+                    this.gui.displayMessage("Add with success", false);
+                    this.retrieveBooks(null, null, null, null, null, null);
+                }
+                else {
+                    this.gui.displayMessage("Error when adding", true);
+                }
             }
             else if (response instanceof ErrorResponse) {
                 throw new Exception(((ErrorResponse) response).getMessage());
