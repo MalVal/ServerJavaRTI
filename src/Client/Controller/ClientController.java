@@ -191,6 +191,31 @@ public class ClientController implements ClientInterface {
         }
     }
 
+    @Override
+    public void payCaddy() {
+        try {
+            Response response = this.clientNetwork.send(new PayCaddyRequest(currentClientId));
+            if(response instanceof PayCaddyResponse) {
+                if(((PayCaddyResponse) response).getResponse()) {
+                    this.disconnect();
+                    this.gui.displayMessage("Payed with success", false);
+                }
+                else {
+                    this.gui.displayMessage("Error when paying", true);
+                }
+            }
+            else if (response instanceof ErrorResponse) {
+                throw new Exception(((ErrorResponse) response).getMessage());
+            }
+            else {
+                throw new Exception("Invalid response");
+            }
+        }
+        catch (Exception exception) {
+            this.gui.displayMessage(exception.getMessage(), true);
+        }
+    }
+
     private void disconnect() {
         try {
             this.gui.displayConnectionMenu();

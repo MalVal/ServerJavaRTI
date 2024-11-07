@@ -14,6 +14,7 @@ import Server.Model.SearchViewModel.CaddyItemSearchVM;
 import Common.Network.Request.*;
 import Common.Network.Response.*;
 import Server.Model.Entities.Client;
+import Server.Model.SearchViewModel.CaddySearchVM;
 import Server.Model.SearchViewModel.ClientSearchVM;
 
 import java.net.Socket;
@@ -100,6 +101,14 @@ public class EVPP implements Protocol {
                     int quantity = bookArrayList.getFirst().getStockQuantity();
                     quantity -= addCaddyItemRequest.getQuantity();
                     bookArrayList.getFirst().setStockQuantity(quantity);
+
+                    double price = bookArrayList.getFirst().getPrice() * addCaddyItemRequest.getQuantity();
+                    CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                    CaddySearchVM caddySearchVM = new CaddySearchVM(this.currentCaddy.getId());
+                    ArrayList<Caddy> caddy = caddyDAO.load(caddySearchVM);
+                    price = price + caddy.getFirst().getAmount();
+                    caddy.getFirst().setAmount(price);
+                    caddyDAO.save(caddy.getFirst());
 
                     CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
                     caddyItemSearchVM.setCaddyId(currentCaddy.getId());
@@ -215,6 +224,14 @@ public class EVPP implements Protocol {
                     newQuantityToAdd += deleteCaddyItemRequest.getQuantity();
                     bookArrayList.getFirst().setStockQuantity(newQuantityToAdd);
                     bookDAO.save(bookArrayList.getFirst());
+
+                    double price = bookArrayList.getFirst().getPrice() * deleteCaddyItemRequest.getQuantity();
+                    CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                    CaddySearchVM caddySearchVM = new CaddySearchVM(this.currentCaddy.getId());
+                    ArrayList<Caddy> caddy = caddyDAO.load(caddySearchVM);
+                    price = caddy.getFirst().getAmount() - price;
+                    caddy.getFirst().setAmount(price);
+                    caddyDAO.save(caddy.getFirst());
 
                     return new DeleteCaddyItemResponse(true);
                 }

@@ -7,4 +7,5 @@ public interface ClientInterface {
     void addToCaddy(Integer idBook, Integer quantity);
     void removeFromCaddy(Integer idBook, Integer quantity);
     void cancelCaddy();
+    void payCaddy();
 }
