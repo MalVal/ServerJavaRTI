@@ -59,7 +59,7 @@ public class ClientController implements ClientInterface {
             Response response = this.clientNetwork.send(new ClientRequest(lastname, firstname, isNew));
             if(response instanceof ClientResponse) {
                 this.currentClientId = ((ClientResponse) response).getIdClient();
-                this.retrieveBooks(null, null, null, null, null, null);
+                this.updateData(false);
                 this.gui.displayConnectedPanel();
             }
             else if (response instanceof ErrorResponse) {
@@ -122,8 +122,7 @@ public class ClientController implements ClientInterface {
             Response response = this.clientNetwork.send(new AddCaddyItemRequest(idBook, quantity));
             if(response instanceof AddCaddyItemResponse) {
                 if(((AddCaddyItemResponse) response).getResponse()) {
-                    this.retrieveBooks(null, null, null, null, null, null);
-                    this.retrieveCaddy();
+                    this.updateData(true);
                     this.gui.displayMessage("Add with success", false);
                 }
                 else {
@@ -148,8 +147,7 @@ public class ClientController implements ClientInterface {
             Response response = this.clientNetwork.send(new DeleteCaddyItemRequest(idBook, quantity));
             if(response instanceof DeleteCaddyItemResponse) {
                 if(((DeleteCaddyItemResponse) response).getResponse()) {
-                    this.retrieveBooks(null, null, null, null, null, null);
-                    this.retrieveCaddy();
+                    this.updateData(true);
                     this.gui.displayMessage("Remove with success", false);
                 }
                 else {
@@ -201,6 +199,16 @@ public class ClientController implements ClientInterface {
         }
         catch (Exception exception) {
             System.out.println(exception.getMessage());
+        }
+    }
+
+    private void updateData(Boolean caddy) {
+        this.retrieveBooks(null, null, null, null, null, null);
+        if(caddy) {
+            this.retrieveCaddy();
+        }
+        else {
+            this.gui.clearCaddy();
         }
     }
 }

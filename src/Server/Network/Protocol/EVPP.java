@@ -149,12 +149,21 @@ public class EVPP implements Protocol {
                     ArrayList<CaddyItem> caddyItems = caddyItemDAO.load(caddyItemSearchVM);
 
                     for(CaddyItem caddyItem : caddyItems) {
+                        BookDAO bookDAO = new BookDAO(dataBaseConnection);
+                        BookSearchVM bookSearchVM = new BookSearchVM();
+                        bookSearchVM.setIdBook(caddyItem.getBookId());
+                        ArrayList<Book> bookArrayList = bookDAO.loadBook(bookSearchVM);
+                        int newQuantityToAdd = bookArrayList.getFirst().getStockQuantity();
+                        newQuantityToAdd += caddyItem.getQuantity();
+                        bookArrayList.getFirst().setStockQuantity(newQuantityToAdd);
+                        bookDAO.save(bookArrayList.getFirst());
                         caddyItem.setQuantity(null);
                         caddyItemDAO.delete(caddyItem);
                     }
 
                     CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
                     caddyDAO.delete(currentCaddy);
+                    currentCaddy = null;
                     return new CancelCaddyResponse(true);
                 }
                 else {

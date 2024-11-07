@@ -14,4 +14,5 @@ public interface PurchaseInterface {
     void displayMessage(String message, Boolean isError);
     void displayBooks(ArrayList<Book> books);
     void displayCaddy(ArrayList<CaddyItem> items);
+    void clearCaddy();
 }
