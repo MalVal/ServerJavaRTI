@@ -15,4 +15,5 @@ public interface PurchaseInterface {
     void displayBooks(ArrayList<Book> books);
     void displayCaddy(ArrayList<CaddyItem> items);
     void clearCaddy();
+    void setTotalAmount(Double total);
 }

@@ -6,9 +6,6 @@ import Common.Model.Entities.CaddyItem;
 import Client.GUI.Model.*;
 
 import javax.swing.*;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
 import java.util.ArrayList;
 
 public class MainWindow extends JFrame implements PurchaseInterface {
@@ -34,6 +31,7 @@ public class MainWindow extends JFrame implements PurchaseInterface {
     private JTable caddyTable;
     private JButton buyButton;
     private JButton cancelButton;
+    private JLabel amountLabel;
 
     public MainWindow() {
         this.setTitle("Book purchase");
@@ -141,43 +139,6 @@ public class MainWindow extends JFrame implements PurchaseInterface {
         booksTable.getColumn("Action").setCellEditor(new AddButtonEditor(new JCheckBox(), this.client, this.booksTable));
     }
 
-    static class QuantitySpinnerEditor extends AbstractCellEditor implements TableCellEditor {
-        private final JSpinner spinner;
-        private final Integer value;
-
-        public QuantitySpinnerEditor(int quantityColumn) {
-            this.value = quantityColumn;
-            spinner = new JSpinner();
-            spinner.setModel(new SpinnerNumberModel(0, 0, 100, 1));
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            return spinner.getValue();
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            int stockQuantity = (int) table.getValueAt(row, this.value);
-            spinner.setModel(new SpinnerNumberModel(0, 0, stockQuantity, 1));
-            spinner.setValue(value);
-            return spinner;
-        }
-    }
-
-    static class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {
-            setOpaque(true);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "Add" : value.toString());
-            setText((value == null) ? "Remove" : value.toString());
-            return this;
-        }
-    }
-
     @Override
     public void displayCaddy(ArrayList<CaddyItem> items) {
         String[] columnNames = {"Book id", "Quantity", "Quantity to remove", "Action"};
@@ -210,5 +171,10 @@ public class MainWindow extends JFrame implements PurchaseInterface {
         String[] columnNames = {"Book id", "Quantity", "Quantity to remove", "Action"};
         EditableTableModel emptyModel = new EditableTableModel(columnNames, 0, new ArrayList<>());
         caddyTable.setModel(emptyModel);
+    }
+
+    @Override
+    public void setTotalAmount(Double total) {
+        amountLabel.setText(String.format("%.2f", total));
     }
 }

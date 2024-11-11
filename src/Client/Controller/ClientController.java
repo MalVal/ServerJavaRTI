@@ -218,19 +218,33 @@ public class ClientController implements ClientInterface {
 
     private void disconnect() {
         try {
+            this.gui.setTotalAmount(0.0);
             this.gui.displayConnectionMenu();
             this.currentClientId = null;
             this.clientNetwork.send(new LogoutRequest());
         }
-        catch (Exception exception) {
-            System.out.println(exception.getMessage());
-        }
+        catch (Exception ignored) {}
     }
 
     private void updateData(Boolean caddy) {
         this.retrieveBooks(null, null, null, null, null, null);
         if(caddy) {
             this.retrieveCaddy();
+            try {
+                Response response = this.clientNetwork.send(new GetCaddyPriceRequest());
+                if(response instanceof GetCaddyPriceResponse) {
+                    this.gui.setTotalAmount(((GetCaddyPriceResponse) response).getCaddyPrice());
+                }
+                else if (response instanceof ErrorResponse) {
+                    throw new Exception(((ErrorResponse) response).getMessage());
+                }
+                else {
+                    throw new Exception("Invalid response");
+                }
+            }
+            catch (Exception exception) {
+                this.gui.displayMessage(exception.getMessage(), true);
+            }
         }
         else {
             this.gui.clearCaddy();

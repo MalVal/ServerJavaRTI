@@ -265,12 +265,28 @@ public class EVPP implements Protocol {
             }
         }
         if(request instanceof SelectBookRequest selectBookRequest) {
-            BookDAO bookDAO = new BookDAO(dataBaseConnection);
             try {
+                BookDAO bookDAO = new BookDAO(dataBaseConnection);
                 return new SelectBookResponse(bookDAO.loadBook(selectBookRequest.getBookSearchVM()));
             }
             catch (SQLException sqlException) {
                 return new ErrorResponse(sqlException.getMessage());
+            }
+        }
+        if(request instanceof GetCaddyPriceRequest) {
+            try {
+                if(currentClient != null) {
+                    CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                    ArrayList<Caddy> caddy = caddyDAO.load(new CaddySearchVM(currentCaddy.getId()));
+                    return new GetCaddyPriceResponse(caddy.getFirst().getAmount());
+                }
+                else
+                {
+                    throw new Exception("Not connected");
+                }
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
             }
         }
         if(request instanceof LogoutRequest) {
