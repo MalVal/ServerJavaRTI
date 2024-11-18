@@ -27,6 +27,15 @@ public abstract class ThreadClient extends Thread
         this.number = currentNumber++;
     }
 
+    public ThreadClient(Protocol protocol, ThreadGroup group, Logger logger) throws IOException
+    {
+        super(group ,"Client " + currentNumber + " (protocol=" + protocol.getName() + ")");
+        this.protocol = protocol;
+        this.clientSocket = null;
+        this.logger = logger;
+        this.number = currentNumber++;
+    }
+
     @Override
     public void run()
     {
