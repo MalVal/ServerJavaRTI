@@ -1,5 +1,6 @@
 package Server.Network.Protocol;
 
+import Common.Network.RequestSecure.ClientDigestRequest;
 import Common.Network.ResponseSecure.ClientResponseSecure;
 import Common.Network.ResponseSecure.ServerSalt;
 import Server.Model.DataAcessObject.BookDAO;
@@ -34,6 +35,12 @@ public class EVPPS implements Protocol {
 
     public EVPPS(DataBaseConnection dataBaseConnection) {
         this.dataBaseConnection = dataBaseConnection;
+        this.currentCaddy = null;
+        this.currentClient = null;
+        this.salt = null;
+    }
+
+    private void resetProtocol() {
         this.currentCaddy = null;
         this.currentClient = null;
         this.salt = null;
@@ -76,6 +83,21 @@ public class EVPPS implements Protocol {
 
                 this.salt = new ServerSalt();
                 return new ClientResponseSecure(currentClient.getId(), this.salt);
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
+            }
+        }
+        if(request instanceof ClientDigestRequest cdr) {
+            try {
+                if(cdr.VerifyDigest(this.currentClient.getId(), this.salt)) {
+                    // Digest is correct
+                }
+                else {
+                    // If the digest is incorrect
+                    this.resetProtocol();
+                    return new ErrorResponse("Digest verification failed");
+                }
             }
             catch (Exception e) {
                 return new ErrorResponse(e.getMessage());

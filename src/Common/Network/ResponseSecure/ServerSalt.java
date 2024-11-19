@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class ServerSalt implements Serializable {
-    private final long time;
-    private final double random;
+    private final Long time;
+    private final Double random;
 
     public ServerSalt() {
         this.time = new Date().getTime();

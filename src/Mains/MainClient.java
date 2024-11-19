@@ -1,7 +1,7 @@
 package Mains;
 
-import Client.Client.Controller.ClientController;
-import Client.Client.GUI.MainWindow;
+import Client.ClientStandard.ClientControllerStandard;
+import Client.GUI.MainWindow;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -17,7 +17,7 @@ public class MainClient {
             String addressIp = properties.getProperty("serv.address");
             String portPayment = properties.getProperty("serv.portPaymentSecure");
 
-            new ClientController(addressIp, Integer.parseInt(portPayment), new MainWindow());
+            new ClientControllerStandard(addressIp, Integer.parseInt(portPayment), new MainWindow());
         }
         catch (Exception e) {
             System.out.println("Error :" + e.getMessage());
