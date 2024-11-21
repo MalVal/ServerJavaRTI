@@ -22,16 +22,17 @@ public class MainServerPool {
         String fileName = "src/config.properties";
 
         try (InputStream input = new FileInputStream(fileName)) {
+            // Récupération des informations du serveur
             properties.load(input);
             String type = properties.getProperty("db.type");
             String server = properties.getProperty("db.server");
             String name = properties.getProperty("db.name");
             String user = properties.getProperty("db.user");
             String password = properties.getProperty("db.password");
-            String portPayment = properties.getProperty("serv.portPaymentSecure");
-
+            String portPayment = properties.getProperty("serv.portPayment");
+            // Création de l'unique connection à la db
             DataBaseConnection dbc = new DataBaseConnection(type, server, name, user, password);
-
+            // Création du serveur
             ThreadServerPool serverPool = new ThreadServerPool(Integer.parseInt(portPayment), new EVPP(dbc), 5,new CmdLogger());
             serverPool.start();
         }

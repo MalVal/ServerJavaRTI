@@ -3,12 +3,18 @@ package Client.ClientSecure;
 import Client.Interfaces.ClientInterface;
 import Client.GUI.PurchaseInterface;
 import Client.Network.Client;
+import Common.Cryptology.Cryptology;
 import Common.Model.SearchViewModel.BookSearchVM;
 import Common.Network.RequestSecure.ClientDigestRequest;
 import Common.Network.Response.*;
 import Common.Network.Request.*;
 import Common.Network.ResponseSecure.ClientResponseSecure;
 import Common.Network.ResponseSecure.ServerSalt;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.security.*;
+import java.security.cert.X509Certificate;
 
 public class ClientControllerSecure implements ClientInterface {
 
@@ -17,13 +23,28 @@ public class ClientControllerSecure implements ClientInterface {
     private Integer currentClientId;
     private final String ipAddress;
     private final Integer portServer;
+    private final PrivateKey privateKey;
+    private final PublicKey publicKey;
+    private SecretKey sessionKey;
+    private final X509Certificate certificate;
 
-    public ClientControllerSecure(String ipServer, Integer portServer, PurchaseInterface gui) {
+    public ClientControllerSecure(String ipServer, Integer portServer, PurchaseInterface gui) throws Exception {
         this.ipAddress = ipServer;
         this.portServer = portServer;
         this.currentClientId = null;
         this.gui = gui;
         this.gui.setController(this);
+
+        // Generate the keys
+        KeyPairGenerator cleGen = KeyPairGenerator.getInstance("RSA","BC");
+        cleGen.initialize(1024,new SecureRandom());
+        KeyPair keys = cleGen.generateKeyPair();
+        this.publicKey = keys.getPublic();
+        this.privateKey = keys.getPrivate();
+        // Construire un certificat auto-signé
+        this.certificate = // Comment avoir le certificat pour l'envoyer ?
+
+        // Display the graphic user interface
         gui.display();
         gui.displayConnectionMenu();
     }
@@ -34,11 +55,17 @@ public class ClientControllerSecure implements ClientInterface {
             try {
                 // Connection to the server
                 this.clientNetwork = new Client(this.ipAddress, this.portServer);
+                // Generate the session key
+                KeyGenerator keyGen = KeyGenerator.getInstance("DESede", "BC");
+                keyGen.init(168);
+                this.sessionKey = keyGen.generateKey();
             }
             catch (Exception e) {
                 throw new Exception("Connection is impossible : " + e.getMessage());
             }
-
+            // Crypt the session key
+            byte[] sessionKeyCrypt;
+            sessionKeyCrypt = Cryptology.CryptASymRSA(this.privateKey, sessionKey.getEncoded());
             // Send the lastname and the firstname to the server
             Response response = this.clientNetwork.send(new ClientRequest(lastname, firstname, isNew));
             if(response instanceof ClientResponseSecure) {

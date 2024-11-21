@@ -21,6 +21,8 @@ import Server.Model.SearchViewModel.CaddySearchVM;
 import Server.Model.SearchViewModel.ClientSearchVM;
 
 import java.net.Socket;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ public class EVPPS implements Protocol {
     private final DataBaseConnection dataBaseConnection;
     private Caddy currentCaddy;
     private Client currentClient;
+    private final PublicKey clientPublicKey;
+    private PrivateKey sessionKey;
 
     private ServerSalt salt;
 
@@ -38,6 +42,8 @@ public class EVPPS implements Protocol {
         this.currentCaddy = null;
         this.currentClient = null;
         this.salt = null;
+        this.clientPublicKey = null;
+        this.sessionKey = null;
     }
 
     private void resetProtocol() {
