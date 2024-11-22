@@ -1,8 +1,11 @@
 package Server.Network.Protocol;
 
+import Common.Cryptology.Cryptology;
+import Common.Network.RequestSecure.AddCaddyItemRequestSecure;
 import Common.Network.RequestSecure.ClientDigestRequest;
 import Common.Network.ResponseSecure.ClientResponseSecure;
 import Common.Network.ResponseSecure.ServerSalt;
+import Common.Network.ResponseSecure.SessionKeyResponse;
 import Server.Model.DataAcessObject.BookDAO;
 import Server.Model.DataAcessObject.CaddyDAO;
 import Server.Model.DataAcessObject.CaddyItemDAO;
@@ -20,9 +23,16 @@ import Server.Model.Entities.Client;
 import Server.Model.SearchViewModel.CaddySearchVM;
 import Server.Model.SearchViewModel.ClientSearchVM;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.Socket;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -32,8 +42,7 @@ public class EVPPS implements Protocol {
     private final DataBaseConnection dataBaseConnection;
     private Caddy currentCaddy;
     private Client currentClient;
-    private final PublicKey clientPublicKey;
-    private PrivateKey sessionKey;
+    private SecretKey sessionKey;
 
     private ServerSalt salt;
 
@@ -42,7 +51,6 @@ public class EVPPS implements Protocol {
         this.currentCaddy = null;
         this.currentClient = null;
         this.salt = null;
-        this.clientPublicKey = null;
         this.sessionKey = null;
     }
 
@@ -59,12 +67,11 @@ public class EVPPS implements Protocol {
 
     @Override
     public synchronized Response processRequest(Request request, Socket socket) throws ConnectionEndException {
-
         if(request instanceof ClientRequest) {
             try {
                 ClientRequest clientRequest = (ClientRequest) request;
                 ClientDAO clientDAO = new ClientDAO(dataBaseConnection);
-
+                // Verify if it's a new client
                 if(clientRequest.isNew()) {
                     ClientSearchVM cs = new ClientSearchVM();
                     cs.setLastName(clientRequest.getLastName());
@@ -74,9 +81,11 @@ public class EVPPS implements Protocol {
                         throw new Exception("Client already exists");
                     }
                     currentClient = new Client(null, clientRequest.getLastName(), clientRequest.getFirstName());
+                    // Create the new client
                     clientDAO.save(currentClient);
                 }
                 else {
+                    // The client exists
                     ClientSearchVM cs = new ClientSearchVM();
                     cs.setLastName(clientRequest.getLastName());
                     cs.setFirstName(clientRequest.getFirstName());
@@ -86,7 +95,7 @@ public class EVPPS implements Protocol {
                     }
                     currentClient = clientArrayList.getFirst();
                 }
-
+                // Create the salt
                 this.salt = new ServerSalt();
                 return new ClientResponseSecure(currentClient.getId(), this.salt);
             }
@@ -97,11 +106,19 @@ public class EVPPS implements Protocol {
         if(request instanceof ClientDigestRequest cdr) {
             try {
                 if(cdr.VerifyDigest(this.currentClient.getId(), this.salt)) {
-                    // Digest is correct
+                    // Generate the session key
+                    KeyGenerator keyGen = KeyGenerator.getInstance("DESede", "BC");
+                    keyGen.init(168);
+                    this.sessionKey = keyGen.generateKey();
+                    // Crypt the session key
+                    byte[] sessionKeyCrypt = Cryptology.CryptASymRSA(this.retrievePublicKeyClient(), sessionKey.getEncoded());
+                    // Send the session key to the client
+                    return new SessionKeyResponse(sessionKeyCrypt);
                 }
                 else {
                     // If the digest is incorrect
                     this.resetProtocol();
+                    // Send an error
                     return new ErrorResponse("Digest verification failed");
                 }
             }
@@ -109,105 +126,58 @@ public class EVPPS implements Protocol {
                 return new ErrorResponse(e.getMessage());
             }
         }
-        if(request instanceof AddCaddyItemRequest) {
+        if(request instanceof AddCaddyItemRequestSecure) {
             try {
                 if(currentClient != null) {
-                    AddCaddyItemRequest addCaddyItemRequest = (AddCaddyItemRequest) request;
+                    AddCaddyItemRequestSecure addCaddyItemRequestSecure = (AddCaddyItemRequestSecure) request;
 
                     if(currentCaddy == null) {
                         currentCaddy = new Caddy(null, currentClient.getId(), LocalDate.now(), 0.0, false);
                         CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
                         caddyDAO.save(currentCaddy);
                     }
-
+                    // Decrypt the data
+                    byte[] dataCrypt = addCaddyItemRequestSecure.getData();
+                    byte[] data = Cryptology.DecryptTripleSymDES(this.sessionKey, dataCrypt);
+                    ByteArrayInputStream stream = new ByteArrayInputStream(data);
+                    DataInputStream dis = new DataInputStream(stream);
+                    Integer idBook = dis.readInt();
+                    Integer quantity = dis.readInt();
+                    // Créer le caddy item
                     CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
-                    CaddyItem caddyItem = new CaddyItem(null, currentCaddy.getId(), addCaddyItemRequest.getIdBook(), addCaddyItemRequest.getQuantity());
-
+                    CaddyItem caddyItem = new CaddyItem(null, currentCaddy.getId(), idBook, quantity);
+                    // Vérifier la quantité
                     BookDAO bookDAO = new BookDAO(dataBaseConnection);
                     BookSearchVM bookSearchVM = new BookSearchVM();
-                    bookSearchVM.setIdBook(addCaddyItemRequest.getIdBook());
+                    bookSearchVM.setIdBook(idBook);
                     ArrayList<Book> bookArrayList = bookDAO.loadBook(bookSearchVM);
-
-                    if(bookArrayList.getFirst().getStockQuantity() < addCaddyItemRequest.getQuantity()) {
+                    if(bookArrayList.getFirst().getStockQuantity() < quantity) {
                         return new AddCaddyItemResponse(false);
                     }
-
-                    int quantity = bookArrayList.getFirst().getStockQuantity();
-                    quantity -= addCaddyItemRequest.getQuantity();
-                    bookArrayList.getFirst().setStockQuantity(quantity);
-
-                    double price = bookArrayList.getFirst().getPrice() * addCaddyItemRequest.getQuantity();
+                    // Mettre à jour la quantité
+                    int newQuantity = bookArrayList.getFirst().getStockQuantity();
+                    newQuantity -= quantity;
+                    bookArrayList.getFirst().setStockQuantity(newQuantity);
+                    // Mettre à jour le prix total du caddy
+                    double price = bookArrayList.getFirst().getPrice() * quantity;
                     CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
                     CaddySearchVM caddySearchVM = new CaddySearchVM(this.currentCaddy.getId());
                     ArrayList<Caddy> caddy = caddyDAO.load(caddySearchVM);
                     price = price + caddy.getFirst().getAmount();
                     caddy.getFirst().setAmount(price);
                     caddyDAO.save(caddy.getFirst());
-
+                    // Ajouter le caddy item au caddy
                     CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
                     caddyItemSearchVM.setCaddyId(currentCaddy.getId());
                     caddyItemSearchVM.setBookId(bookArrayList.getFirst().getId());
                     ArrayList<CaddyItem> caddyItemArrayList = caddyItemDAO.load(caddyItemSearchVM);
-
                     if(!caddyItemArrayList.isEmpty()) {
                         caddyItem.setId(caddyItemArrayList.getFirst().getId());
                     }
                     caddyItemDAO.save(caddyItem);
                     bookDAO.save(bookArrayList.getFirst());
-
+                    // Répondre au client
                     return new AddCaddyItemResponse(true);
-                }
-                else
-                {
-                    throw new Exception("Not connected");
-                }
-            }
-            catch (Exception e) {
-                return new ErrorResponse(e.getMessage());
-            }
-        }
-        if(request instanceof GetCaddyItemRequest) {
-            try {
-                if(currentClient != null) {
-                    CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
-                    caddyItemSearchVM.setCaddyId(currentCaddy.getId());
-                    CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
-                    ArrayList<CaddyItem> items = caddyItemDAO.load(caddyItemSearchVM);
-                    return new GetCaddyItemResponse(items);
-                }
-                else {
-                    throw new Exception("Not connected");
-                }
-            }
-            catch (Exception e) {
-                return new ErrorResponse(e.getMessage());
-            }
-        }
-        if(request instanceof CancelCaddyRequest) {
-            try {
-                if(currentClient != null) {
-                    CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
-                    CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
-                    caddyItemSearchVM.setCaddyId(currentCaddy.getId());
-                    ArrayList<CaddyItem> caddyItems = caddyItemDAO.load(caddyItemSearchVM);
-
-                    for(CaddyItem caddyItem : caddyItems) {
-                        BookDAO bookDAO = new BookDAO(dataBaseConnection);
-                        BookSearchVM bookSearchVM = new BookSearchVM();
-                        bookSearchVM.setIdBook(caddyItem.getBookId());
-                        ArrayList<Book> bookArrayList = bookDAO.loadBook(bookSearchVM);
-                        int newQuantityToAdd = bookArrayList.getFirst().getStockQuantity();
-                        newQuantityToAdd += caddyItem.getQuantity();
-                        bookArrayList.getFirst().setStockQuantity(newQuantityToAdd);
-                        bookDAO.save(bookArrayList.getFirst());
-                        caddyItem.setQuantity(null);
-                        caddyItemDAO.delete(caddyItem);
-                    }
-
-                    CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
-                    caddyDAO.delete(currentCaddy);
-                    currentCaddy = null;
-                    return new CancelCaddyResponse(true);
                 }
                 else {
                     throw new Exception("Not connected");
@@ -277,6 +247,57 @@ public class EVPPS implements Protocol {
                 return new ErrorResponse(e.getMessage());
             }
         }
+        if(request instanceof GetCaddyItemRequest) {
+            try {
+                if(currentClient != null) {
+                    CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                    caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                    CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
+                    ArrayList<CaddyItem> items = caddyItemDAO.load(caddyItemSearchVM);
+                    return new GetCaddyItemResponse(items);
+                }
+                else {
+                    throw new Exception("Not connected");
+                }
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
+            }
+        }
+        if(request instanceof CancelCaddyRequest) {
+            try {
+                if(currentClient != null) {
+                    CaddyItemDAO caddyItemDAO = new CaddyItemDAO(dataBaseConnection);
+                    CaddyItemSearchVM caddyItemSearchVM = new CaddyItemSearchVM();
+                    caddyItemSearchVM.setCaddyId(currentCaddy.getId());
+                    ArrayList<CaddyItem> caddyItems = caddyItemDAO.load(caddyItemSearchVM);
+
+                    for(CaddyItem caddyItem : caddyItems) {
+                        BookDAO bookDAO = new BookDAO(dataBaseConnection);
+                        BookSearchVM bookSearchVM = new BookSearchVM();
+                        bookSearchVM.setIdBook(caddyItem.getBookId());
+                        ArrayList<Book> bookArrayList = bookDAO.loadBook(bookSearchVM);
+                        int newQuantityToAdd = bookArrayList.getFirst().getStockQuantity();
+                        newQuantityToAdd += caddyItem.getQuantity();
+                        bookArrayList.getFirst().setStockQuantity(newQuantityToAdd);
+                        bookDAO.save(bookArrayList.getFirst());
+                        caddyItem.setQuantity(null);
+                        caddyItemDAO.delete(caddyItem);
+                    }
+
+                    CaddyDAO caddyDAO = new CaddyDAO(dataBaseConnection);
+                    caddyDAO.delete(currentCaddy);
+                    currentCaddy = null;
+                    return new CancelCaddyResponse(true);
+                }
+                else {
+                    throw new Exception("Not connected");
+                }
+            }
+            catch (Exception e) {
+                return new ErrorResponse(e.getMessage());
+            }
+        }
         if(request instanceof PayCaddyRequest) {
             try {
                 if(currentClient != null) {
@@ -328,5 +349,12 @@ public class EVPPS implements Protocol {
         }
 
         return null;
+    }
+
+    private PublicKey retrievePublicKeyClient() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream("resources/serverKeyStore.jks"),"123".toCharArray());
+        X509Certificate cert = (X509Certificate)ks.getCertificate("clientevpps");
+        return cert.getPublicKey();
     }
 }

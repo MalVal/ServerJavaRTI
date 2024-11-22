@@ -4,8 +4,8 @@ import Common.Network.Response.Response;
 
 public class ClientResponseSecure implements Response {
 
-    private Integer idClient;
-    private ServerSalt salt;
+    private final Integer idClient;
+    private final ServerSalt salt;
 
     public ClientResponseSecure(Integer idClient, ServerSalt salt) {
         this.idClient = idClient;
@@ -16,15 +16,7 @@ public class ClientResponseSecure implements Response {
         return idClient;
     }
 
-    public void setIdClient(Integer idClient) {
-        this.idClient = idClient;
-    }
-
     public ServerSalt getSalt() {
         return salt;
-    }
-
-    public void setSalt(ServerSalt salt) {
-        this.salt = salt;
     }
 }

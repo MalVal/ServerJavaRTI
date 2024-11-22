@@ -5,16 +5,22 @@ import Client.GUI.PurchaseInterface;
 import Client.Network.Client;
 import Common.Cryptology.Cryptology;
 import Common.Model.SearchViewModel.BookSearchVM;
+import Common.Network.RequestSecure.AddCaddyItemRequestSecure;
 import Common.Network.RequestSecure.ClientDigestRequest;
 import Common.Network.Response.*;
 import Common.Network.Request.*;
 import Common.Network.ResponseSecure.ClientResponseSecure;
 import Common.Network.ResponseSecure.ServerSalt;
+import Common.Network.ResponseSecure.SessionKeyResponse;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.*;
-import java.security.cert.X509Certificate;
+import java.security.cert.CertificateException;
 
 public class ClientControllerSecure implements ClientInterface {
 
@@ -23,27 +29,16 @@ public class ClientControllerSecure implements ClientInterface {
     private Integer currentClientId;
     private final String ipAddress;
     private final Integer portServer;
-    private final PrivateKey privateKey;
-    private final PublicKey publicKey;
     private SecretKey sessionKey;
-    private final X509Certificate certificate;
 
     public ClientControllerSecure(String ipServer, Integer portServer, PurchaseInterface gui) throws Exception {
+        // Assign variables
         this.ipAddress = ipServer;
         this.portServer = portServer;
         this.currentClientId = null;
         this.gui = gui;
         this.gui.setController(this);
-
-        // Generate the keys
-        KeyPairGenerator cleGen = KeyPairGenerator.getInstance("RSA","BC");
-        cleGen.initialize(1024,new SecureRandom());
-        KeyPair keys = cleGen.generateKeyPair();
-        this.publicKey = keys.getPublic();
-        this.privateKey = keys.getPrivate();
-        // Construire un certificat auto-signé
-        this.certificate = // Comment avoir le certificat pour l'envoyer ?
-
+        this.sessionKey = null;
         // Display the graphic user interface
         gui.display();
         gui.displayConnectionMenu();
@@ -52,20 +47,8 @@ public class ClientControllerSecure implements ClientInterface {
     @Override
     public void connection(String lastname, String firstname, Boolean isNew) {
         try {
-            try {
-                // Connection to the server
-                this.clientNetwork = new Client(this.ipAddress, this.portServer);
-                // Generate the session key
-                KeyGenerator keyGen = KeyGenerator.getInstance("DESede", "BC");
-                keyGen.init(168);
-                this.sessionKey = keyGen.generateKey();
-            }
-            catch (Exception e) {
-                throw new Exception("Connection is impossible : " + e.getMessage());
-            }
-            // Crypt the session key
-            byte[] sessionKeyCrypt;
-            sessionKeyCrypt = Cryptology.CryptASymRSA(this.privateKey, sessionKey.getEncoded());
+            // Connect to the server
+            this.clientNetwork = new Client(this.ipAddress, this.portServer);
             // Send the lastname and the firstname to the server
             Response response = this.clientNetwork.send(new ClientRequest(lastname, firstname, isNew));
             if(response instanceof ClientResponseSecure) {
@@ -74,11 +57,17 @@ public class ClientControllerSecure implements ClientInterface {
                 ServerSalt salt = ((ClientResponseSecure) response).getSalt();
                 // The client send the digest
                 response = this.clientNetwork.send(new ClientDigestRequest(this.currentClientId, salt));
-                // ????
-
-                // if response ok ->
-                this.updateData(false);
-                this.gui.displayConnectedPanel();
+                if(response instanceof SessionKeyResponse) {
+                    // Décryptage de la clé de session
+                    byte[] sessionKeyDecrypt = Cryptology.DecryptASymRSA(this.retrievePrivateKey(), ((SessionKeyResponse) response).getSessionKey());
+                    this.sessionKey = new SecretKeySpec(sessionKeyDecrypt,"DESede");
+                    // Changer le GUI
+                    this.updateData(false);
+                    this.gui.displayConnectedPanel();
+                }
+                else {
+                    throw new Exception(((ErrorResponse) response).getMessage());
+                }
             }
             else if (response instanceof ErrorResponse) {
                 throw new Exception(((ErrorResponse) response).getMessage());
@@ -88,8 +77,7 @@ public class ClientControllerSecure implements ClientInterface {
             }
         }
         catch (Exception exception) {
-            if(!exception.getMessage().contains("Connection is impossible"))
-            {
+            if(!exception.getMessage().contains("Connection is impossible")) {
                 this.disconnect();
             }
             this.gui.displayMessage(exception.getMessage(), true);
@@ -137,7 +125,15 @@ public class ClientControllerSecure implements ClientInterface {
     @Override
     public void addToCaddy(Integer idBook, Integer quantity) {
         try {
-            Response response = this.clientNetwork.send(new AddCaddyItemRequest(idBook, quantity));
+            // Crypter les données à envoyer
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(stream);
+            dos.writeInt(idBook);
+            dos.writeInt(quantity);
+            byte[] message = stream.toByteArray();
+            byte[] messageCrypt = Cryptology.CryptTripleSymDES(this.sessionKey, message);
+            // Envoyer les données cryptées
+            Response response = this.clientNetwork.send(new AddCaddyItemRequestSecure(messageCrypt));
             if(response instanceof AddCaddyItemResponse) {
                 if(((AddCaddyItemResponse) response).getResponse()) {
                     this.updateData(true);
@@ -267,5 +263,11 @@ public class ClientControllerSecure implements ClientInterface {
         else {
             this.gui.clearCaddy();
         }
+    }
+
+    private PrivateKey retrievePrivateKey() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream("resources/clientKeyStore.jks"),"123".toCharArray());
+        return (PrivateKey) ks.getKey("clientevpps", "123".toCharArray());
     }
 }
