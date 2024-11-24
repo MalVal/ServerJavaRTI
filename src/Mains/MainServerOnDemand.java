@@ -2,7 +2,7 @@ package Mains;
 
 import Server.Logger.CmdLogger;
 import Server.Model.DataBase.DataBaseConnection;
-import Server.Network.Protocol.EVPPS;
+import Server.Network.Protocol.EVPP;
 import Server.Network.ServerTCP.ServerOnDemand.ThreadServerOnDemand;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -28,11 +28,11 @@ public class MainServerOnDemand {
             String name = properties.getProperty("db.name");
             String user = properties.getProperty("db.user");
             String password = properties.getProperty("db.password");
-            String portPayment = properties.getProperty("serv.portPaymentSecure");
+            String portPayment = properties.getProperty("serv.portPayment");
             // Création de l'unique connection à la db
             DataBaseConnection dbc = new DataBaseConnection(type, server, name, user, password);
             // Création du serveur
-            ThreadServerOnDemand serverOnDemand = new ThreadServerOnDemand(Integer.parseInt(portPayment), new EVPPS(dbc), new CmdLogger());
+            ThreadServerOnDemand serverOnDemand = new ThreadServerOnDemand(Integer.parseInt(portPayment), new EVPP(dbc), new CmdLogger());
             serverOnDemand.start();
         }
         catch (SQLException sqlEx) {
